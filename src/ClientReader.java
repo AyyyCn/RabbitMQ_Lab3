@@ -1,6 +1,5 @@
 import com.rabbitmq.client.*;
 
-import java.util.concurrent.CountDownLatch;
 
 public class ClientReader {
     private static final String REQUEST_EXCHANGE = "RequestLastLine";
@@ -10,7 +9,7 @@ public class ClientReader {
     public static void main(String[] argv) throws Exception {
         ConnectionFactory factory = new ConnectionFactory();
         factory.setHost("localhost");
-        final CountDownLatch latch = new CountDownLatch(1);
+
 
         Connection connection = factory.newConnection();
              Channel channel = connection.createChannel();
@@ -26,6 +25,7 @@ public class ClientReader {
             DeliverCallback deliverCallback = (consumerTag, delivery) -> {
                 String messageReceived = new String(delivery.getBody(), "UTF-8");
                 System.out.println("Received: " + messageReceived);
+
 
             };
 

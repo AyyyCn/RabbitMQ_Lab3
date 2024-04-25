@@ -4,7 +4,7 @@ import java.nio.file.Paths;
 import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
+
 
 public class Replica {
     private static final String BROADCAST_EXCHANGE = "BroadcastToReplicas";
@@ -22,7 +22,7 @@ public class Replica {
         final int replicaNumber = Integer.parseInt(argv[0]);
         final String replicaQueue = "Replica" + replicaNumber;
         final String fileName = "replicaFile" + replicaNumber + ".txt";
-        final CountDownLatch latch = new CountDownLatch(1);
+
         ConnectionFactory factory = new ConnectionFactory();
         factory.setHost("localhost");
 
@@ -72,7 +72,19 @@ public class Replica {
                 }
                 else if (message.equals("READALL"))
                {
-                   System.out.println("TODO");
+                   try {
+                       List<String> lines = Files.readAllLines(Paths.get(fileName));
+                       if (!lines.isEmpty()) {
+                           for (int i = 0; i < lines.size() ; i++) {
+                               String lastLine = lines.get(i);
+                               channel.basicPublish(RESPONSE_EXCHANGE, RESPONSE_QUEUE, null, lastLine.getBytes("UTF-8"));
+                               System.out.println(" [x] Replica " + replicaNumber + " responded with line:  " + i + "'" + lastLine + "'");
+                           }
+                       }
+                   } catch (IOException e) {
+                       System.err.println("Failed to read from file: " + fileName);
+                       e.printStackTrace();
+                   }
                }
             };
             channel.basicConsume(requestQueue, true, requestCallback, consumerTag -> {});
